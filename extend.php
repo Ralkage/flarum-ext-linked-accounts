@@ -73,4 +73,8 @@ return [
     // "Post as" — swap author on discussion/post creation
     (new Extend\Event())
         ->subscribe(Listener\PostAsListener::class),
+
+    // Rate-limit account linking to prevent brute-force password guessing
+    (new Extend\ThrottleApi())
+        ->set('linkedAccountsLink', Throttler\LinkAccountThrottler::class),
 ];

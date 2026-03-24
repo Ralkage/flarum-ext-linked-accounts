@@ -3,6 +3,7 @@
 namespace Ralkage\LinkedAccounts\Api\Controller;
 
 use Flarum\Api\Controller\AbstractCreateController;
+use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,18 +31,27 @@ class LinkExistingAccountController extends AbstractCreateController
         $actor->assertRegistered();
 
         $data = Arr::get($request->getParsedBody(), 'data.attributes', []);
+        $ip = $request->getServerParams()['REMOTE_ADDR'] ?? null;
 
-        $child = $this->service->linkExistingAccount(
-            $actor,
-            Arr::get($data, 'identification', ''),
-            Arr::get($data, 'password', '')
-        );
+        try {
+            $child = $this->service->linkExistingAccount(
+                $actor,
+                Arr::get($data, 'identification', ''),
+                Arr::get($data, 'password', '')
+            );
+        } catch (ValidationException $e) {
+            $errors = $e->getAttributes();
+            if (isset($errors['password']) || isset($errors['identification'])) {
+                $this->service->writeLog($actor->id, 0, 'link_failed', $ip);
+            }
+            throw $e;
+        }
 
         $this->service->writeLog(
             $actor->id,
             $child->id,
             'link',
-            $request->getServerParams()['REMOTE_ADDR'] ?? null
+            $ip
         );
 
         return LinkedAccount::where('parent_user_id', $actor->id)
