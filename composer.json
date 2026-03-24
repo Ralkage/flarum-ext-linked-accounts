@@ -1,0 +1,39 @@
+{
+    "name": "ralkage/flarum-ext-linked-accounts",
+    "description": "Link multiple accounts and switch between them seamlessly",
+    "type": "flarum-extension",
+    "keywords": [
+        "flarum",
+        "linked-accounts",
+        "multi-account",
+        "account-switching"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ralkage",
+            "homepage": "https://github.com/ralkage"
+        }
+    ],
+    "require": {
+        "flarum/core": "^1.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ralkage\\LinkedAccounts\\": "src/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Linked Accounts",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-users-cog",
+                "backgroundColor": "#667eea",
+                "color": "#fff"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

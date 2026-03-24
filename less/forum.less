@@ -1,0 +1,301 @@
+// =========================================================================
+// Linked Accounts - Forum Styles
+// Follows Flarum's core design language: flat, 4px radius, system colors
+// =========================================================================
+
+.LinkedAccountsPage {
+
+    // ---- Switched / Parent alerts ----
+    &-switchedAlert,
+    &-parentAlert {
+        margin-bottom: 20px;
+
+        .Alert-body i {
+            margin-right: 6px;
+        }
+    }
+
+    &-switchedAlert {
+        background: var(--alert-bg, #fff2ae);
+        color: var(--alert-color, #ad6c00);
+    }
+
+    // ---- Empty placeholder ----
+    &-placeholder {
+        text-align: center;
+        padding: 30px 20px;
+        color: var(--muted-color);
+
+        p {
+            margin: 0;
+            line-height: 1.6;
+        }
+    }
+
+    // ---- Accounts section ----
+    &-heading {
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted-color);
+        margin: 0 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        border-radius: 11px;
+        background: var(--control-bg);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted-color);
+    }
+
+    // ---- Account list ----
+    &-list {
+        list-style: none;
+        margin: 0 0 20px;
+        padding: 0;
+    }
+
+    &-account {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: var(--border-radius, 4px);
+        transition: background 0.2s;
+
+        &:hover {
+            background: var(--control-bg);
+        }
+
+        &.active {
+            background: var(--control-bg);
+        }
+
+        // Avatar
+        &-avatar {
+            flex-shrink: 0;
+
+            .Avatar {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .Avatar--medium {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                font-size: 18px;
+                font-weight: 700;
+                color: #fff;
+                object-fit: cover;
+            }
+        }
+
+        // Name + meta
+        &-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        &-name {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--heading-color, var(--text-color));
+        }
+
+        &-info {
+            display: block;
+            font-size: 12px;
+            color: var(--muted-color);
+            margin-top: 1px;
+        }
+
+        &-current {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: @primary-color;
+
+            &::before {
+                content: '\f058'; // fa-check-circle
+                font-family: 'Font Awesome 5 Free';
+                font-weight: 900;
+                margin-right: 3px;
+            }
+        }
+
+        // Buttons
+        &-controls {
+            flex-shrink: 0;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+    }
+
+    // ---- Add section ----
+    &-addOptions {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+
+        @media (max-width: 767.98px) {
+            flex-direction: column;
+        }
+    }
+
+    // ---- Option buttons (Create / Link) ----
+    &-option {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        background: var(--body-bg);
+        border: 2px solid var(--control-bg);
+        border-radius: var(--border-radius, 4px);
+        cursor: pointer;
+        text-align: left;
+        transition: border-color 0.15s, background 0.15s;
+
+        &:hover {
+            border-color: @primary-color;
+        }
+
+        &.active {
+            border-color: @primary-color;
+            background: var(--control-bg);
+        }
+
+        &-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--border-radius, 4px);
+            background: var(--control-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.15s, color 0.15s;
+
+            i {
+                font-size: 16px;
+                color: var(--muted-color);
+            }
+        }
+
+        &.active &-icon,
+        &:hover &-icon {
+            background: @primary-color;
+
+            i {
+                color: #fff;
+            }
+        }
+
+        &-label {
+            flex: 1;
+            min-width: 0;
+
+            strong {
+                display: block;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            span {
+                display: block;
+                font-size: 12px;
+                color: var(--muted-color);
+                line-height: 1.4;
+                margin-top: 2px;
+            }
+        }
+    }
+
+    // ---- Child account info panel ----
+    &-childInfo {
+        text-align: center;
+        padding: 30px 20px;
+
+        p {
+            color: var(--muted-color);
+            margin: 0 0 16px;
+            line-height: 1.6;
+        }
+    }
+
+    // ---- Expandable form ----
+    &-form {
+        background: var(--control-bg);
+        border-radius: var(--border-radius, 4px);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+}
+
+// ---- Header revert button ----
+.LinkedAccount-revertBtn {
+    background: @primary-color !important;
+    color: var(--body-bg) !important;
+    border: none !important;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 18px;
+    padding: 6px 16px;
+    transition: background 0.15s;
+
+    &:hover {
+        background: darken(@primary-color, 8%) !important;
+    }
+
+    i {
+        margin-right: 5px;
+    }
+}
+
+// ---- "Post as" composer dropdown ----
+.PostAs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    &-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted-color);
+        white-space: nowrap;
+
+        i {
+            margin-right: 3px;
+        }
+    }
+
+    &-select {
+        width: auto;
+        display: inline-block;
+        height: auto;
+        padding: 4px 10px;
+        font-size: 13px;
+        border-radius: var(--border-radius, 4px);
+    }
+}
