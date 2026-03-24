@@ -11,7 +11,9 @@ class LinkedAccount extends AbstractModel
 
     public $timestamps = false;
 
-    protected $dates = ['created_at'];
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
 
     public function parentUser()
     {

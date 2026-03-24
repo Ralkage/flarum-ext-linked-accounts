@@ -243,12 +243,77 @@
         }
     }
 
-    // ---- Expandable form ----
+    // ---- Expandable form (FieldSet) ----
     &-form {
-        background: var(--control-bg);
+        margin-top: 20px;
+
+        .Form-controls {
+            padding-top: 10px;
+
+            .Button + .Button {
+                margin-left: 10px;
+            }
+        }
+    }
+
+    // ---- Autocomplete dropdown ----
+    &-autocomplete {
+        position: relative;
+        width: 100%;
+    }
+
+    &-suggestions {
+        position: absolute;
+        z-index: 100;
+        top: 100%;
+        left: 0;
+        right: 0;
+        list-style: none;
+        margin: 2px 0 0;
+        padding: 4px 0;
+        background: var(--body-bg);
+        border: 1px solid var(--control-bg);
         border-radius: var(--border-radius, 4px);
-        padding: 20px;
-        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    &-suggestion {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background 0.1s;
+
+        &:hover {
+            background: var(--control-bg);
+        }
+
+        .Avatar--small {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        &-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        &-username {
+            margin-left: 4px;
+            font-size: 12px;
+            color: var(--muted-color);
+            font-weight: 400;
+        }
     }
 }
 

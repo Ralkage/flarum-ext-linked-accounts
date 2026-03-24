@@ -1,32 +1,10 @@
 import app from 'flarum/admin/app';
 import LinkedAccountsPage from './components/LinkedAccountsPage';
 
+export { default as extend } from './extend';
+
 app.initializers.add('ralkage-linked-accounts', () => {
-    app.extensionData
+    app.registry
         .for('ralkage-linked-accounts')
-        .registerPage(LinkedAccountsPage)
-        .registerPermission(
-            {
-                icon: 'fas fa-users',
-                label: app.translator.trans('ralkage-linked-accounts.admin.permissions.use'),
-                permission: 'linkedAccounts.use',
-            },
-            'start'
-        )
-        .registerPermission(
-            {
-                icon: 'fas fa-user-plus',
-                label: app.translator.trans('ralkage-linked-accounts.admin.permissions.create'),
-                permission: 'linkedAccounts.create',
-            },
-            'start'
-        )
-        .registerPermission(
-            {
-                icon: 'fas fa-eye',
-                label: app.translator.trans('ralkage-linked-accounts.admin.permissions.view_any'),
-                permission: 'linkedAccounts.viewAny',
-            },
-            'moderate'
-        );
+        .registerPage(LinkedAccountsPage);
 });

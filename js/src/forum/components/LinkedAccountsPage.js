@@ -2,8 +2,9 @@ import app from 'flarum/forum/app';
 import Page from 'flarum/common/components/Page';
 import Button from 'flarum/common/components/Button';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
-import IndexPage from 'flarum/forum/components/IndexPage';
-import listItems from 'flarum/common/helpers/listItems';
+import FieldSet from 'flarum/common/components/FieldSet';
+import PageStructure from 'flarum/forum/components/PageStructure';
+import IndexSidebar from 'flarum/forum/components/IndexSidebar';
 import { switchAccount, revertAccount } from '../index';
 
 export default class LinkedAccountsPage extends Page {
@@ -24,6 +25,9 @@ export default class LinkedAccountsPage extends Page {
 
         this.activeForm = null;
 
+        this.userSuggestions = [];
+        this.searchTimeout = null;
+
         this.loadAccounts();
     }
 
@@ -32,11 +36,9 @@ export default class LinkedAccountsPage extends Page {
 
         if (!user) {
             return (
-                <div className="IndexPage">
-                    <div className="container">
-                        <p>Please log in to manage linked accounts.</p>
-                    </div>
-                </div>
+                <PageStructure className="IndexPage" sidebar={() => <IndexSidebar />}>
+                    <p>Please log in to manage linked accounts.</p>
+                </PageStructure>
             );
         }
 
@@ -45,66 +47,57 @@ export default class LinkedAccountsPage extends Page {
         const parentName = app.forum.attribute('linkedAccountParentName');
 
         return (
-            <div className="IndexPage">
-                <div className="container">
-                    <div className="sideNavContainer">
-                        <nav className="IndexPage-nav sideNav">
-                            <ul>{listItems(IndexPage.prototype.navItems().toArray())}</ul>
-                        </nav>
-                        <div className="IndexPage-results sideNavOffset">
-                            <div className="LinkedAccountsPage">
-                                {/* Switched account alert */}
-                                {parentId && parentName && (
-                                    <div className="Alert Alert--info LinkedAccountsPage-switchedAlert">
-                                        <span className="Alert-body">
-                                            <i className="fas fa-exchange-alt"></i>{' '}
-                                            {app.translator.trans('ralkage-linked-accounts.forum.page.switched_notice', {
-                                                name: <strong>{parentName}</strong>,
-                                            })}
-                                        </span>
-                                        <Button
-                                            className="Button Button--link Alert-control"
-                                            icon="fas fa-undo"
-                                            onclick={() => revertAccount()}
-                                        >
-                                            {app.translator.trans('ralkage-linked-accounts.forum.page.revert')}
-                                        </Button>
-                                    </div>
-                                )}
-
-                                {/* Child account info panel */}
-                                {!isParent && (
-                                    <div className="LinkedAccountsPage-childInfo">
-                                        <p>
-                                            {app.translator.trans('ralkage-linked-accounts.forum.page.child_info')}
-                                        </p>
-                                        <Button
-                                            className="Button Button--primary"
-                                            icon="fas fa-undo"
-                                            onclick={() => switchAccount(user.attribute('linkedParentId'))}
-                                        >
-                                            {app.translator.trans('ralkage-linked-accounts.forum.page.switch_to_parent')}
-                                        </Button>
-                                    </div>
-                                )}
-
-                                {/* Main content — only parent accounts manage linked accounts */}
-                                {isParent && (
-                                    this.loading ? (
-                                        <LoadingIndicator />
-                                    ) : (
-                                        <div>
-                                            {this.accountsList()}
-
-                                            {user.attribute('canCreateLinkedAccounts') && this.actionSection()}
-                                        </div>
-                                    )
-                                )}
-                            </div>
+            <PageStructure className="IndexPage" sidebar={() => <IndexSidebar />}>
+                <div className="LinkedAccountsPage">
+                    {/* Switched account alert */}
+                    {parentId && parentName && (
+                        <div className="Alert Alert--info LinkedAccountsPage-switchedAlert">
+                            <span className="Alert-body">
+                                <i className="fas fa-exchange-alt"></i>{' '}
+                                {app.translator.trans('ralkage-linked-accounts.forum.page.switched_notice', {
+                                    name: <strong>{parentName}</strong>,
+                                })}
+                            </span>
+                            <Button
+                                className="Button Button--link Alert-control"
+                                icon="fas fa-undo"
+                                onclick={() => revertAccount()}
+                            >
+                                {app.translator.trans('ralkage-linked-accounts.forum.page.revert')}
+                            </Button>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Child account info panel */}
+                    {!isParent && (
+                        <div className="LinkedAccountsPage-childInfo">
+                            <p>
+                                {app.translator.trans('ralkage-linked-accounts.forum.page.child_info')}
+                            </p>
+                            <Button
+                                className="Button Button--primary"
+                                icon="fas fa-undo"
+                                onclick={() => switchAccount(user.attribute('linkedParentId'))}
+                            >
+                                {app.translator.trans('ralkage-linked-accounts.forum.page.switch_to_parent')}
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Main content — only parent accounts manage linked accounts */}
+                    {isParent && (
+                        this.loading ? (
+                            <LoadingIndicator />
+                        ) : (
+                            <div>
+                                {this.accountsList()}
+
+                                {user.attribute('canCreateLinkedAccounts') && this.actionSection()}
+                            </div>
+                        )
+                    )}
                 </div>
-            </div>
+            </PageStructure>
         );
     }
 
@@ -247,7 +240,7 @@ export default class LinkedAccountsPage extends Page {
 
     createForm() {
         return (
-            <div className="LinkedAccountsPage-form Form">
+            <FieldSet className="LinkedAccountsPage-form FieldSet--form" label={app.translator.trans('ralkage-linked-accounts.forum.page.create_title')}>
                 <div className="Form-group">
                     <label>{app.translator.trans('ralkage-linked-accounts.forum.page.username')}</label>
                     <input
@@ -281,7 +274,7 @@ export default class LinkedAccountsPage extends Page {
                     />
                 </div>
 
-                <div className="Form-group">
+                <div className="Form-controls">
                     <Button
                         className="Button Button--primary"
                         loading={this.creating}
@@ -292,28 +285,92 @@ export default class LinkedAccountsPage extends Page {
                         {app.translator.trans('ralkage-linked-accounts.forum.page.create_submit')}
                     </Button>
                     <Button
-                        className="Button Button--link"
+                        className="Button"
                         onclick={() => { this.activeForm = null; }}
                     >
                         Cancel
                     </Button>
                 </div>
-            </div>
+            </FieldSet>
         );
+    }
+
+    searchUsers(query) {
+        if (this.searchTimeout) clearTimeout(this.searchTimeout);
+        if (!query || query.length < 2) {
+            this.userSuggestions = [];
+            m.redraw();
+            return;
+        }
+
+        this.searchTimeout = setTimeout(() => {
+            app.request({
+                method: 'GET',
+                url: app.forum.attribute('apiUrl') + '/users',
+                params: { 'filter[q]': query, 'page[limit]': 5 },
+            }).then(response => {
+                this.userSuggestions = (response.data || []).map(u => ({
+                    id: u.id,
+                    username: u.attributes.username,
+                    displayName: u.attributes.displayName,
+                    avatarUrl: u.attributes.avatarUrl,
+                })).filter(u => String(u.id) !== String(app.session.user.id()));
+                m.redraw();
+            }).catch(() => {
+                this.userSuggestions = [];
+                m.redraw();
+            });
+        }, 250);
+    }
+
+    selectSuggestion(user) {
+        this.linkIdentification = user.username;
+        this.userSuggestions = [];
     }
 
     linkForm() {
         return (
-            <div className="LinkedAccountsPage-form Form">
+            <FieldSet className="LinkedAccountsPage-form FieldSet--form" label={app.translator.trans('ralkage-linked-accounts.forum.page.link_title')}>
                 <div className="Form-group">
                     <label>{app.translator.trans('ralkage-linked-accounts.forum.page.identification')}</label>
-                    <input
-                        type="text"
-                        className="FormControl"
-                        value={this.linkIdentification}
-                        oninput={e => { this.linkIdentification = e.target.value; }}
-                        placeholder={app.translator.trans('ralkage-linked-accounts.forum.page.identification_placeholder')}
-                    />
+                    <div className="LinkedAccountsPage-autocomplete">
+                        <input
+                            type="text"
+                            className="FormControl"
+                            value={this.linkIdentification}
+                            oninput={e => {
+                                this.linkIdentification = e.target.value;
+                                this.searchUsers(e.target.value);
+                            }}
+                            onfocus={e => this.searchUsers(e.target.value)}
+                            placeholder={app.translator.trans('ralkage-linked-accounts.forum.page.identification_placeholder')}
+                            autocomplete="off"
+                        />
+                        {this.userSuggestions && this.userSuggestions.length > 0 && (
+                            <ul className="LinkedAccountsPage-suggestions">
+                                {this.userSuggestions.map(user => (
+                                    <li
+                                        key={user.id}
+                                        className="LinkedAccountsPage-suggestion"
+                                        onmousedown={e => { e.preventDefault(); this.selectSuggestion(user); }}
+                                    >
+                                        {user.avatarUrl
+                                            ? <img src={user.avatarUrl} alt="" className="Avatar Avatar--small" />
+                                            : <span className="Avatar Avatar--small" style={{ backgroundColor: '#667eea' }}>
+                                                {(user.displayName || user.username).charAt(0).toUpperCase()}
+                                              </span>
+                                        }
+                                        <span className="LinkedAccountsPage-suggestion-name">
+                                            {user.displayName || user.username}
+                                            {user.displayName && user.displayName !== user.username && (
+                                                <span className="LinkedAccountsPage-suggestion-username">@{user.username}</span>
+                                            )}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
                 </div>
 
                 <div className="Form-group">
@@ -327,7 +384,7 @@ export default class LinkedAccountsPage extends Page {
                     />
                 </div>
 
-                <div className="Form-group">
+                <div className="Form-controls">
                     <Button
                         className="Button Button--primary"
                         loading={this.linking}
@@ -338,13 +395,13 @@ export default class LinkedAccountsPage extends Page {
                         {app.translator.trans('ralkage-linked-accounts.forum.page.link_submit')}
                     </Button>
                     <Button
-                        className="Button Button--link"
+                        className="Button"
                         onclick={() => { this.activeForm = null; }}
                     >
                         Cancel
                     </Button>
                 </div>
-            </div>
+            </FieldSet>
         );
     }
 

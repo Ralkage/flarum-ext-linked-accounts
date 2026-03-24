@@ -2,9 +2,10 @@
 
 namespace Ralkage\LinkedAccounts;
 
+use Flarum\Api\Context;
+use Flarum\Api\Resource;
+use Flarum\Api\Schema;
 use Flarum\Extend;
-use Flarum\Api\Serializer\BasicUserSerializer;
-use Flarum\Api\Serializer\ForumSerializer;
 
 return [
     // Admin frontend
@@ -28,13 +29,14 @@ return [
         ->serializeToForum('linkedAccountsMaxAccounts', 'ralkage-linked-accounts.max_accounts', 'intval')
         ->serializeToForum('linkedAccountsLogRetentionDays', 'ralkage-linked-accounts.log_retention_days', 'intval'),
 
-    // API routes
+    // API Resources (Flarum 2.x pattern — replaces old serializer + controller routes)
+    new Extend\ApiResource(Api\Resource\LinkedAccountResource::class),
+    new Extend\ApiResource(Api\Resource\LinkedAccountLogResource::class),
+
+    // Custom API routes that don't fit the resource CRUD pattern
     (new Extend\Routes('api'))
-        ->get('/linked-accounts', 'linked-accounts.index', Api\Controller\ListLinkedAccountsController::class)
         ->post('/linked-accounts/create', 'linked-accounts.create', Api\Controller\CreateLinkedAccountController::class)
         ->post('/linked-accounts/link', 'linked-accounts.link', Api\Controller\LinkExistingAccountController::class)
-        ->delete('/linked-accounts/{id}', 'linked-accounts.delete', Api\Controller\UnlinkAccountController::class)
-        ->get('/linked-account-logs', 'linked-account-logs.index', Api\Controller\ListLinkedAccountLogsController::class)
         ->delete('/linked-account-logs', 'linked-account-logs.clear', Api\Controller\ClearLinkedAccountLogsController::class),
 
     // Forum routes (session-based account switching)
@@ -46,31 +48,50 @@ return [
     (new Extend\Middleware('forum'))
         ->add(Middleware\LinkedAccountMiddleware::class),
 
-    // Add linked account attributes to user API responses
-    (new Extend\ApiSerializer(BasicUserSerializer::class))
-        ->attributes(function ($serializer, $user, $attributes) {
-            $attributes['isLinkedChild'] = (bool) $user->is_linked_child;
-            $attributes['linkedParentId'] = $user->linked_parent_id;
-            $attributes['linkedChildrenCount'] = (int) $user->linked_children_count;
+    // Add linked account fields to the User API resource
+    (new Extend\ApiResource(Resource\UserResource::class))
+        ->fields(fn () => [
+            Schema\Boolean::make('isLinkedChild')
+                ->get(fn ($user) => (bool) $user->is_linked_child),
 
-            // Only expose permission info for the current user
-            if ($serializer->getActor()->id === $user->id) {
-                $attributes['canUseLinkedAccounts'] = $serializer->getActor()->hasPermission('linkedAccounts.use');
-                $attributes['canCreateLinkedAccounts'] = $serializer->getActor()->hasPermission('linkedAccounts.create');
-            }
+            Schema\Number::make('linkedParentId')
+                ->get(fn ($user) => $user->linked_parent_id),
 
-            return $attributes;
-        }),
+            Schema\Number::make('linkedChildrenCount')
+                ->get(fn ($user) => (int) $user->linked_children_count),
+
+            Schema\Boolean::make('canUseLinkedAccounts')
+                ->get(function ($user, Context $context) {
+                    if ($context->getActor()->id === $user->id) {
+                        return $context->getActor()->hasPermission('linkedAccounts.use');
+                    }
+                    return null;
+                }),
+
+            Schema\Boolean::make('canCreateLinkedAccounts')
+                ->get(function ($user, Context $context) {
+                    if ($context->getActor()->id === $user->id) {
+                        return $context->getActor()->hasPermission('linkedAccounts.create');
+                    }
+                    return null;
+                }),
+        ]),
 
     // Expose switched-account state to the forum frontend
-    (new Extend\ApiSerializer(ForumSerializer::class))
-        ->attributes(function ($serializer, $model, $attributes) {
-            $attributes['linkedAccountParentId'] = Middleware\LinkedAccountMiddleware::$parentUserId;
-            $attributes['linkedAccountParentName'] = Middleware\LinkedAccountMiddleware::$parentUserName;
-            return $attributes;
-        }),
+    (new Extend\ApiResource(Resource\ForumResource::class))
+        ->fields(fn () => [
+            Schema\Number::make('linkedAccountParentId')
+                ->get(fn () => Middleware\LinkedAccountMiddleware::$parentUserId),
+
+            Schema\Str::make('linkedAccountParentName')
+                ->get(fn () => Middleware\LinkedAccountMiddleware::$parentUserName),
+        ]),
 
     // "Post as" — swap author on discussion/post creation
     (new Extend\Event())
         ->subscribe(Listener\PostAsListener::class),
+
+    // Rate-limit account linking to prevent brute-force password guessing
+    (new Extend\ThrottleApi())
+        ->set('linkedAccountsLink', Throttler\LinkAccountThrottler::class),
 ];

@@ -11,7 +11,9 @@ class LinkedAccountLog extends AbstractModel
 
     public $timestamps = false;
 
-    protected $dates = ['created_at'];
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
 
     protected $fillable = [
         'parent_user_id',

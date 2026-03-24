@@ -1,12 +1,9 @@
 import app from 'flarum/forum/app';
 import { extend } from 'flarum/common/extend';
-import HeaderSecondary from 'flarum/forum/components/HeaderSecondary';
-import SessionDropdown from 'flarum/forum/components/SessionDropdown';
 import LinkButton from 'flarum/common/components/LinkButton';
 import Button from 'flarum/common/components/Button';
-import DiscussionComposer from 'flarum/forum/components/DiscussionComposer';
-import ReplyComposer from 'flarum/forum/components/ReplyComposer';
-import LinkedAccountsPage from './components/LinkedAccountsPage';
+
+export { default as extend } from './extend';
 
 // ---- Linked accounts cache for "Post as" dropdown ----
 let linkedAccountsCache = null;
@@ -37,8 +34,8 @@ export function clearLinkedAccountsCache() {
 }
 
 // ---- "Post as" composer integration ----
-function addPostAsToComposer(ComposerClass) {
-    extend(ComposerClass.prototype, 'oninit', function () {
+function addPostAsToComposer(composerPath) {
+    extend(composerPath, 'oninit', function () {
         const user = app.session.user;
         if (user && user.attribute('linkedChildrenCount') > 0 && !user.attribute('isLinkedChild')) {
             this.postAsAccounts = [];
@@ -50,7 +47,7 @@ function addPostAsToComposer(ComposerClass) {
         }
     });
 
-    extend(ComposerClass.prototype, 'headerItems', function (items) {
+    extend(composerPath, 'headerItems', function (items) {
         if (!this.postAsAccounts || this.postAsAccounts.length === 0) return;
 
         const user = app.session.user;
@@ -78,7 +75,7 @@ function addPostAsToComposer(ComposerClass) {
         );
     });
 
-    extend(ComposerClass.prototype, 'data', function (data) {
+    extend(composerPath, 'data', function (data) {
         if (this.postAsUserId) {
             data.postAsUserId = parseInt(this.postAsUserId, 10);
         }
@@ -87,14 +84,8 @@ function addPostAsToComposer(ComposerClass) {
 
 // ---- Main initializer ----
 app.initializers.add('ralkage-linked-accounts', () => {
-    // Register the management page route
-    app.routes['linked-accounts'] = {
-        path: '/linked-accounts',
-        component: LinkedAccountsPage,
-    };
-
     // Add "Linked Accounts" link to the user session dropdown menu
-    extend(SessionDropdown.prototype, 'items', function (items) {
+    extend('flarum/forum/components/SessionDropdown', 'items', function (items) {
         const user = app.session.user;
         if (!user) return;
 
@@ -109,7 +100,7 @@ app.initializers.add('ralkage-linked-accounts', () => {
     });
 
     // Show a "Revert to Parent" button in the header when the user has switched accounts
-    extend(HeaderSecondary.prototype, 'items', function (items) {
+    extend('flarum/forum/components/HeaderSecondary', 'items', function (items) {
         const parentId = app.forum.attribute('linkedAccountParentId');
         const parentName = app.forum.attribute('linkedAccountParentName');
 
@@ -128,8 +119,8 @@ app.initializers.add('ralkage-linked-accounts', () => {
     });
 
     // Add "Post as" dropdown to discussion and reply composers
-    addPostAsToComposer(DiscussionComposer);
-    addPostAsToComposer(ReplyComposer);
+    addPostAsToComposer('flarum/forum/components/DiscussionComposer');
+    addPostAsToComposer('flarum/forum/components/ReplyComposer');
 });
 
 /**

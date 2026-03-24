@@ -42,11 +42,15 @@ class LinkedAccountService
             throw new ValidationException(['email' => 'This email is already in use.']);
         }
 
-        $child = User::register($username, $email, $password ?: Str::random(20));
-        $child->is_email_confirmed = true;
+        $child = new User();
+        $child->username = $username;
+        $child->email = $email;
+        $child->password = $password ?: Str::random(20);
         $child->is_linked_child = true;
         $child->linked_parent_id = $parent->id;
         $child->save();
+
+        $child->activate();
 
         $link = new LinkedAccount();
         $link->parent_user_id = $parent->id;
